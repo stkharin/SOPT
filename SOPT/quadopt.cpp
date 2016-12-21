@@ -10,6 +10,8 @@
 #include <iostream>
 using namespace std;
 
+static int PRECISION=NULL; //digits after decimal in result coefficients; set NULL for default double precision
+
 double** makeA(int n, int k, double* x){
 
     //calculating all required sums of powers of x
@@ -34,6 +36,7 @@ double** makeA(int n, int k, double* x){
 
 double* makeB(int n, int k, double* x, double* y){
     
+    //calculating sums of y[i]x[i]^i
     double* B = new double[n+1];
     for (int i=0;i<n+1;i++){
         B[i]=0;
@@ -43,6 +46,7 @@ double* makeB(int n, int k, double* x, double* y){
     return B;
 }
 
+// product of two vectors of size n
 double product(int n, double* a, double* b){
     double p=0;
     for (int i=0;i<n;i++)
@@ -50,6 +54,7 @@ double product(int n, double* a, double* b){
     return p;
 }
 
+//product of n*n matrix and a vector of size n
 double* product(int n, double** A, double* b){
     double* p = new double[n];
     for (int i=0;i<n;i++){
@@ -60,6 +65,7 @@ double* product(int n, double** A, double* b){
     return p;
 }
 
+//product of scalar and a vector of size n
 double* product(int n, double a, double* b){
     double* p = new double[n];
     for (int i=0;i<n;i++){
@@ -68,6 +74,7 @@ double* product(int n, double a, double* b){
     return p;
 }
 
+//difference between two vectors of size n
 double* subtract(int n, double* a, double* b){
     double* s=new double[n];
     for (int i=0;i<n;i++)
@@ -75,6 +82,7 @@ double* subtract(int n, double* a, double* b){
     return s;
 }
 
+//sum of two vectors of size n
 double* add(int n, double* a, double* b){
     double* s=new double[n];
     for (int i=0;i<n;i++)
@@ -82,7 +90,9 @@ double* add(int n, double* a, double* b){
     return s;
 }
 
+//solving system of linear equations using Conjugate Gradient method
 double* linsolve(int n, double** A, double* b) {
+    
     double* x = new double[n];
     double* r;
     double* d;
@@ -112,17 +122,25 @@ double* linsolve(int n, double** A, double* b) {
 }
 
 double* polyfit(int n, int k, double* x, double* y){
-    return linsolve(n+1, makeA(n,k,x), makeB(n,k,x,y));
+    double* coeffs = linsolve(n+1, makeA(n,k,x), makeB(n,k,x,y));
+    
+    //saving the polynom coefficients with given precision
+    if (PRECISION){
+        for (int i=0;i<n+1;i++)
+            coeffs[i]=(int)(coeffs[i]*pow(10,PRECISION))/pow(10,PRECISION);
+    }
+    
+    return coeffs;
 }
 
 int main() {
+    //test data
     double x[9]={0.5, 1, 1.5, 2.5, 3, 3.5, 4, 4.5, 5};
     double y[9]={0.5, 1.5, 2, 3, 3, 2.5, 2, 1, 0};
     int n=2;
     int k=9;
     
-    double* coeffs;
-    coeffs=polyfit(n, k, x, y);
+    double* coeffs = polyfit(n, k, x, y);
     for (int i=0;i<n+1;i++)
         cout<<coeffs[i]<<endl;
     return 0;
